@@ -7,13 +7,14 @@ default_se='https://www.google.com/search?q='
 #default_se='https://www.startpage.com/do/dsearch?query='
 #default_se='https://www.bing.com/search?q='
 
-case $1 in
+[ -n "$1" ] && case $1 in
 	-a|-add) printf '%s' "pon nombre del marcador: " && read -r nombre \
-		&& printf '%s' "pon url: " && read -r url && printf "%s" "$nombre - $url" >> $urlfile;;
-	-d|-r) a="$(fzf --reverse --cycle --prompt='eliminar entrada: ' < urlfile)" \
-		&& sed -i "/$a/d" $urlfile;;
-	-h|--help) printf "opciones son -add, -d\\n";;
+		&& printf '%s' "pon url: " && read -r url && echo "$nombre $delimiter $url" >> $urlfile;;
+	-d|-r) for gon in "$(fzf --cycle --reverse --prompt='eliminar entrada: ' -m < $urlfile)"; do
+		sed -i /"$gon"/d "$urlfile" 2>/dev/null
+	done;;
 	-e|e) "$EDITOR" "$urlfile" ;;
+	-h|--help|*) printf "opciones son:\\n-add\\n-d (delete entry)\\n-e (edit bookmark file)\\n";;
 esac
 
 [ -n "$1" ] && exit
