@@ -1,0 +1,27 @@
+#!/bin/sh
+
+urlfile=~/.local/share/base
+delimiter='-'
+default_se='https://www.google.com/search?q='
+
+case $1 in
+	-a|-add) printf '%s' "pon nombre del marcador: " && read -r nombre \
+		&& printf '%s' "pon url: " && read -r url && printf "%s" "$nombre - $url" >> $urlfile;;
+	-d|-r) a="$(fzf --reverse --cycle --prompt='eliminar entrada: ' < urlfile)" \
+		&& sed -i "/$a/d" $urlfile;;
+	-h|--help) printf "opciones son -add, -d\\n";;
+	-e|e) "$EDITOR" "$urlfile" ;;
+esac
+
+[ -n "$1" ] && exit
+
+urls=$(grep -v '^#' $urlfile | dmenu -i -l 20 -sb '#898818' -p 'marcadores web:') || exit
+
+if [ -n "$(echo $urls | grep "$delimiter")" ]; then 
+	url=$(printf '%s\n' "$urls" | cut -d"$delimiter" -f2- |cut -c 2- |tr ' ' '+') 
+	pidof -q "$BROWSER" && "$BROWSER" "$url" || setsid -f "$BROWSER" "$url"
+else
+	url=$(printf '%s\n' "$urls" |tr ' ' '+') 
+	pidof -q "$BROWSER" && "$BROWSER" "$default_se$url" \
+		|| setsid -f "$BROWSER" "$default_se$url"
+fi
