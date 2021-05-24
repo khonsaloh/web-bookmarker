@@ -15,6 +15,7 @@ sudo make uninstall
 
 ### How to use it
 There is no much to it, you can pass the `-a` parameter to add an entry, `-e` to edit the bookmark file directly, `-d` to delete a bookmark or `-h|--help` for show you this.
+You can throw comments into the `base` file (the file with the bookmark entries) beginning with the `#` symbol.
 After launching `dmenu`, you can press the `Tab` key to autocomplete the url and pass some extra words for the search.
 By defaut, if no bookmark matches any entry in the url file, It will launch google with the correspondent querry (this can be changed, of course).
 Once launched the menu, the selection can be cancelled pressing `esc`.

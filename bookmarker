@@ -3,6 +3,9 @@
 urlfile=~/.local/share/base
 delimiter='-'
 default_se='https://www.google.com/search?q='
+#default_se='https://duckduckgo.com/?q='
+#default_se='https://www.startpage.com/do/dsearch?query='
+#default_se='https://www.bing.com/search?q='
 
 case $1 in
 	-a|-add) printf '%s' "pon nombre del marcador: " && read -r nombre \
