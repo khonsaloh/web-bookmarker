@@ -16,9 +16,24 @@ default_se='https://www.google.com/search?q='
 			sed -i "/$line/d" "$urlfile" && notify-send "$line eliminada"
 		done;;
 	-e|e) "$EDITOR" "$urlfile" ;;
-	-H) a="$(sqlite3  ~/.mozilla/firefox/*.defaul*/places.sqlite \
-		'SELECT * FROM moz_places;' | tail -n 500 | dmenu -l 20 -fn 'Noto Color Emoj')" && [ -n "$a" ] \
-		&& setsid -f "$BROWSER" $(echo $a| cut -d'|' -f2);;
+	-H) proc=$(pidof $BROWSER)
+		if [ -z "$proc" ]; then
+			a="$(sqlite3  ~/.mozilla/firefox/*.default-*/places.sqlite \
+				'SELECT * FROM moz_places;' | tail -n 500 | dmenu -l 20 -fn 'Noto Color Emoj')" \
+				&& [ -n "$a" ] && setsid -f "$BROWSER" $(echo $a| cut -d'|' -f2)
+		else
+			if [ ! -f /tmp/places.sqlite ]; then
+				cp ~/.mozilla/firefox/*.default-*/places.sqlite /tmp/
+				a="$(sqlite3 /tmp/places.sqlite \
+					'SELECT * FROM moz_places;' | tail -n 500 | dmenu -l 20 -fn 'Noto Color Emoj')" && [ -n "$a" ] \
+					&& setsid -f "$BROWSER" $(echo $a| cut -d'|' -f2)
+			else
+				a="$(sqlite3 /tmp/places.sqlite \
+					'SELECT * FROM moz_places;' | tail -n 500 | dmenu -l 20 -fn 'Noto Color Emoj')" && [ -n "$a" ] \
+					&& setsid -f "$BROWSER" $(echo $a| cut -d'|' -f2)
+			fi
+		fi
+		;;
 	-b|--bak) bak="$HOME/bak/" && cp $urlfile $bak && notify-send "bakup nuevo en $bak" ;;
 	-h|--help|*) printf "opciones son:\\n-add\\n-d (delete entry)\\n-e (edit bookmark file)\\n-H browser history search\\n-b create a backup of bookmarks\\n";;
 esac
