@@ -1,50 +1,77 @@
 #!/bin/sh
 
-urlfile=~/.local/share/base
-separator='-'
+urlfile=~/.local/share/webbookmarks
+#"<" | ">" | "#" | "%" | <"> # one of these
+separator='<'
 default_se='https://www.google.com/search?q='
+bak="$HOME/bak/" 
 #default_se='https://duckduckgo.com/?q='
 #default_se='https://www.startpage.com/do/dsearch?query='
 #default_se='https://www.bing.com/search?q='
 
+help() {
+	while IFS= read -r line; do
+		printf "%s\n" "$line"
+	done <<-EOF
+	USO:
+	 -a	 añadir marcador
+	 -d	 eliminar entrada
+	 -e	 editar archivo de marcadores
+	 -H	 historial de búsqueda
+	 -b	 crear un backup del archivo de marcadores
+	EOF
+}
 [ -n "$1" ] && case $1 in
-	-a|-add) printf '%s' "pon nombre del marcador: " && read -r nombre \
-		&& printf '%s' "pon url: " && read -r url && echo "$nombre $separator $url" >> $urlfile;;
-	-d|-r) urls=$(fzf --cycle --reverse --prompt='eliminar entrada: ' -m < $urlfile) \
+	-a|-add)
+		printf '%s' "pon nombre del marcador: " \
+		&& read -r nombre && printf '%s' "pon url: " \
+		&& read -r url && echo "$nombre $separator|$url" >> $urlfile;;
+	-d|-r) 
+		urls=$(fzf --cycle --reverse --prompt='eliminar entrada: ' -m < $urlfile) \
 		&& printf '%s\n' "$urls" | while IFS= read -r line
 		do
 			sed -i "/$line/d" "$urlfile" && notify-send "$line eliminada"
 		done;;
-	-e|e) "$EDITOR" "$urlfile" ;;
-	-H) proc=$(pidof $BROWSER)
+	-e|e)
+		"$EDITOR" "$urlfile" ;;
+	-H)
+		proc=$(pidof $BROWSER)
 		if [ -z "$proc" ]; then
 			a="$(sqlite3  ~/.mozilla/firefox/*.default-*/places.sqlite \
-				'SELECT * FROM moz_places;' | tail -n 500 | dmenu -l 20 -fn 'Noto Color Emoj')" \
+				'SELECT * FROM moz_places;' | tail -n 500 | tac | dmenu -c -l 30 )" \
 				&& [ -n "$a" ] && setsid -f "$BROWSER" $(echo $a| cut -d'|' -f2)
 		else
 			if [ ! -f /tmp/places.sqlite ]; then
 				cp ~/.mozilla/firefox/*.default-*/places.sqlite /tmp/
 				a="$(sqlite3 /tmp/places.sqlite \
-					'SELECT * FROM moz_places;' | tail -n 500 | dmenu -l 20 -fn 'Noto Color Emoj')" && [ -n "$a" ] \
+					'SELECT * FROM moz_places;' | tail -n 500 \
+					| tac | dmenu -c -l 30)" && [ -n "$a" ] \
 					&& setsid -f "$BROWSER" $(echo $a| cut -d'|' -f2)
 			else
 				a="$(sqlite3 /tmp/places.sqlite \
-					'SELECT * FROM moz_places;' | tail -n 500 | dmenu -l 20 -fn 'Noto Color Emoj')" && [ -n "$a" ] \
+					'SELECT * FROM moz_places;' | tail -n 500 | tac \
+					| dmenu -l 30)" && [ -n "$a" ] \
 					&& setsid -f "$BROWSER" $(echo $a| cut -d'|' -f2)
 			fi
 		fi
 		;;
-	-b|--bak) bak="$HOME/bak/" && cp $urlfile $bak && notify-send "bakup nuevo en $bak" ;;
-	-h|--help|*) printf "opciones son:\\n-add\\n-d (delete entry)\\n-e (edit bookmark file)\\n-H browser history search\\n-b create a backup of bookmarks\\n";;
+	-b|--bak)
+		cp $urlfile $bak && notify-send "bakup nuevo en $bak" ;;
+	-h|--help|*)
+		help ;;	
 esac
 
 [ -n "$1" ] && exit
 
-urls=$(grep -v '^#' $urlfile | dmenu -i -l 20 -sb '#898818' -p 'marcadores web:') || exit
+urls=$(grep -v '^#' $urlfile | column -s"$separator" -t \
+	| dmenu -i -l 20 -sb '#898818' -fn 'Mono' -p 'marcadores web:') || exit 1
 
-if [ -n "$(echo $urls | grep "$separator")" ]; then 
-	url=$(printf '%s\n' "$urls" | cut -d"$separator" -f2- |cut -c 2- |tr ' ' '+') 
-	pidof -q "$BROWSER" && "$BROWSER" "$url" || setsid -f "$BROWSER" "$url"
+if [ -n "$(echo $urls | grep "|")" ]; then 
+	url=$(printf '%s\n' "$urls" | cut -d"|" -f2- |tr ' ' '+') 
+	for i in $url; do
+		pidof -q "$BROWSER" && "$BROWSER" "$i" \
+			|| setsid -f "$BROWSER" "$i"
+	done
 else
 	url=$(printf '%s\n' "$urls" |tr ' ' '+') 
 	pidof -q "$BROWSER" && "$BROWSER" "$default_se$url" \
