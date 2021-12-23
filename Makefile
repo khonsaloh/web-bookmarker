@@ -1,13 +1,13 @@
-all: install
+
+PROG=bookmarker
+PREFIX = /usr/local/bin
 
 install:
-	chmod 755 bookmarker
-	cp bookmarker /usr/local/bin/bookmarker
-	cp ./data/base /home/*/.local/share/base
+	chmod 755 ${PROG}
+	cp -rp ${PROG} ${DESTDIR}${PREFIX}/${PROG}
 
 uninstall:
-	rm -f bookmarker /usr/local/bin/bookmarker
-	rm -f ./data/base /home/*/.local/share/base
+	rm -f ${DESTDIR}${PREFIX}/${PROG}
 
-.PHONY: all install uninstall
+.PHONY: install uninstall
 
