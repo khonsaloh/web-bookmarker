@@ -3,8 +3,8 @@
 urlfile=~/.local/share/webbookmarks
 #"<" | ">" | "#" | "%" | <"> # one of these
 separator='<'
+bak="$HOME/.local/share/bak" 
 default_se='https://www.google.com/search?q='
-bak="$HOME/bak/" 
 #default_se='https://duckduckgo.com/?q='
 #default_se='https://www.startpage.com/do/dsearch?query='
 #default_se='https://www.bing.com/search?q='
@@ -17,22 +17,22 @@ help() {
 	 -a	 añadir marcador
 	 -d	 eliminar entrada
 	 -e	 editar archivo de marcadores
-	 -H	 historial de búsqueda
+	 -H	 historial de búsqueda (solo firefox)
 	 -b	 crear un backup del archivo de marcadores
 	EOF
 }
 [ -n "$1" ] && case $1 in
-	-a|-add)
+	-a)
 		printf '%s' "pon nombre del marcador: " \
 		&& read -r nombre && printf '%s' "pon url: " \
 		&& read -r url && echo "$nombre $separator|$url" >> $urlfile;;
-	-d|-r) 
+	-d) 
 		urls=$(fzf --cycle --reverse --prompt='eliminar entrada: ' -m < $urlfile) \
 		&& printf '%s\n' "$urls" | while IFS= read -r line
 		do
 			sed -i "/$line/d" "$urlfile" && notify-send "$line eliminada"
 		done;;
-	-e|e)
+	-e)
 		"$EDITOR" "$urlfile" ;;
 	-H)
 		proc=$(pidof $BROWSER)
@@ -55,9 +55,11 @@ help() {
 			fi
 		fi
 		;;
-	-b|--bak)
-		cp $urlfile $bak && notify-send "bakup nuevo en $bak" ;;
-	-h|--help|*)
+	-b)
+		[ ! -d $bak ] && mkdir -p $bak
+		cp $urlfile $bak/bookmarker.$(date +%Y%m%d%H%M%S) \
+			&& notify-send "bakup nuevo en $bak" ;;
+	*)
 		help ;;	
 esac
 
