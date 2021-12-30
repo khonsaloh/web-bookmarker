@@ -19,6 +19,7 @@ help() {
 	 -e	 editar archivo de marcadores
 	 -H	 historial de búsqueda (solo firefox)
 	 -b	 crear un backup del archivo de marcadores
+	 -x	 export to csv file
 	EOF
 }
 [ -n "$1" ] && case $1 in
@@ -59,6 +60,8 @@ help() {
 		[ ! -d $bak ] && mkdir -p $bak
 		cp $urlfile $bak/bookmarker.$(date +%Y%m%d%H%M%S) \
 			&& notify-send "bakup nuevo en $bak" ;;
+	-x)
+		sed 's/<|/,/g' $urlfile > bookmarks.csv;;
 	*)
 		help ;;	
 esac
