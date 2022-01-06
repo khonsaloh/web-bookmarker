@@ -2,6 +2,11 @@
 
 #### very simple script to manage web bookmarks 
 
+##
+<p align="center">
+<img src="./assets/hola.gif" alt="sample" width="100%">>
+</p>
+
 ### dependencies
 - dmenu (fzf will give you a better formatting but It feels more natural from this little gui menu)
 - fzf (for delete the entries in the url file)
